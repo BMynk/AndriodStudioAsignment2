@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <dimen name="page_margin">16dp</dimen>
+    <dimen name="bottom_nav_height">64dp</dimen>
+    <dimen name="card_radius">14dp</dimen>
+    <dimen name="fab_margin">20dp</dimen>
+</resources>
