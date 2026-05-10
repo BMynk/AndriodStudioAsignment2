@@ -24,4 +24,6 @@ public class Book {
     public double getPrice()         { return price; }
     public int getCopiesAvailable()  { return copiesAvailable; }
     public int getCoverResId()       { return coverResId; }
+    public void setCopiesAvailable(int copiesAvailable) { this.copiesAvailable = copiesAvailable; }
+    public void setPrice(double price)                   { this.price = price; }
 }
