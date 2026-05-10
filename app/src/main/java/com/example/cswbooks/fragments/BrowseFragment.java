@@ -12,20 +12,18 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.example.cswbooks.R;
 import com.example.cswbooks.SellBookBottomSheet;
 import com.example.cswbooks.adapters.BookAdapter;
-import com.example.cswbooks.data.SampleData;
+import com.example.cswbooks.data.ListingRepository;
 import com.google.android.material.floatingactionbutton.ExtendedFloatingActionButton;
 
 /**
- * BrowseFragment — displays all textbook listings in a 2-column grid.
+ * BrowseFragment — displays all active listings in a 2-column grid.
  * Owner: Browse Feature Developer (Branch 2)
- *
- * Data source: SampleData (upgraded to ListingRepository in Branch 5)
- * Adapter:     BookAdapter (owned by this branch)
+ * Fixed: Branch 6 — grid now refreshes correctly after new listing added.
  */
 public class BrowseFragment extends Fragment {
 
-    // Stored as field so onResume() can refresh it
     private BookAdapter adapter;
+    private RecyclerView recyclerView;
 
     @Nullable
     @Override
@@ -39,25 +37,22 @@ public class BrowseFragment extends Fragment {
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
 
-        // ── RecyclerView — 2-column grid ──────────────────────────────────────
-        RecyclerView recyclerView = view.findViewById(R.id.browse_recycler_view);
+        // ── RecyclerView ──────────────────────────────────────────────────────
+        recyclerView = view.findViewById(R.id.browse_recycler_view);
         recyclerView.setLayoutManager(new GridLayoutManager(getContext(), 2));
 
         adapter = new BookAdapter(
                 getContext(),
-                SampleData.getSampleBooks(),
-                book -> { /* Book tap — detail screen added in future branch */ }
+                ListingRepository.getInstance().getAllBooks(),
+                book -> { /* future: book detail screen */ }
         );
         recyclerView.setAdapter(adapter);
 
-        // ── FAB — opens Sell form ─────────────────────────────────────────────
+        // ── FAB ───────────────────────────────────────────────────────────────
         ExtendedFloatingActionButton fabSell = view.findViewById(R.id.fab_sell);
-        fabSell.setOnClickListener(v -> {
-            SellBookBottomSheet sheet = new SellBookBottomSheet();
-            sheet.show(getParentFragmentManager(), SellBookBottomSheet.TAG);
-        });
+        fabSell.setOnClickListener(v -> openSellSheet());
 
-        // ── Shrink FAB when scrolling down, extend when scrolling up ──────────
+        // ── Shrink FAB on scroll ──────────────────────────────────────────────
         recyclerView.addOnScrollListener(new RecyclerView.OnScrollListener() {
             @Override
             public void onScrolled(@NonNull RecyclerView rv, int dx, int dy) {
@@ -67,13 +62,25 @@ public class BrowseFragment extends Fragment {
         });
     }
 
+    /** Opens the sell sheet and guarantees the grid refreshes on any change. */
+    private void openSellSheet() {
+        SellBookBottomSheet sheet = new SellBookBottomSheet();
+        sheet.setOnListingAddedListener(this::refreshGrid);
+        sheet.show(getParentFragmentManager(), SellBookBottomSheet.TAG);
+    }
+
+    /** Reloads the full book list from the repository into the adapter. */
+    private void refreshGrid() {
+        if (adapter != null) {
+            adapter.updateData(ListingRepository.getInstance().getAllBooks());
+        }
+    }
+
     @Override
     public void onResume() {
         super.onResume();
-        // Refresh list when returning to this screen
-        // Branch 5 will replace SampleData with ListingRepository here
-        if (adapter != null) {
-            adapter.updateData(SampleData.getSampleBooks());
-        }
+        // Always refresh when returning to this screen
+        // Catches books added from any other screen
+        refreshGrid();
     }
 }

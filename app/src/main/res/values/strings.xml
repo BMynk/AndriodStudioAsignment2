@@ -22,7 +22,13 @@
     <string name="notifications">Notifications</string>
     <string name="account_details">Account Details</string>
     <string name="help_support">Help &amp; Support</string>
+    <!-- Sell form — new fields -->
+    <string name="hint_seller">Your Name (Seller)</string>
+    <string name="hint_copies">Number of Copies</string>
 
+    <!-- Settings -->
+    <string name="settings_title">Settings</string>
+    <string name="my_listings_title">My Listings</string>
     <!-- Sell form -->
     <string name="upload_book_cover">Upload Book Cover</string>
     <string name="hint_title">Title</string>
