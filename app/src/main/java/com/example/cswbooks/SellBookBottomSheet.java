@@ -11,32 +11,27 @@ import android.widget.Button;
 import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import com.example.cswbooks.data.SampleData;
+import com.example.cswbooks.data.ListingRepository;
 import com.example.cswbooks.models.Book;
+import com.example.cswbooks.models.DuplicateListingException;
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment;
 import com.google.android.material.textfield.TextInputEditText;
 import com.google.android.material.textfield.TextInputLayout;
-import java.util.List;
 
 /**
  * SellBookBottomSheet — form for posting a new textbook listing.
  * Owner: Sell Feature Developer (Branch 4)
- *
- * Fields:   Title, Author, Seller Name, Edition, Condition,
- *           Price (R), Copies, Seller Notes
+ * Updated: Branch 5 — uses ListingRepository + DuplicateListingException.
  *
  * Duplicate logic:
  *   Same title + author + seller = duplicate.
- *   Instead of blocking, user is offered to update
- *   the copies or price of the existing listing.
- *
- * Branch 5 replaces SampleData with ListingRepository.
+ *   User is offered to update copies or price instead of being blocked.
  */
 public class SellBookBottomSheet extends BottomSheetDialogFragment {
 
     public static final String TAG = "SellBookBottomSheet";
 
-    // ── Callback so BrowseFragment refreshes after a listing is added ─────────
+    // ── Callback so BrowseFragment refreshes after posting ────────────────────
     public interface OnListingAddedListener {
         void onListingAdded();
     }
@@ -115,10 +110,9 @@ public class SellBookBottomSheet extends BottomSheetDialogFragment {
 
     private void attemptPostListing() {
 
-        // Step 1 — clear previous errors
         clearErrors();
 
-        // Step 2 — read all field values
+        // Read fields
         String title     = getText(etTitle);
         String author    = getText(etAuthor);
         String seller    = getText(etSeller);
@@ -128,7 +122,7 @@ public class SellBookBottomSheet extends BottomSheetDialogFragment {
         String copiesStr = getText(etCopies);
         String notes     = getText(etNotes);
 
-        // Step 3 — validate required fields
+        // Validate
         boolean hasError = false;
 
         if (title.isEmpty()) {
@@ -148,7 +142,6 @@ public class SellBookBottomSheet extends BottomSheetDialogFragment {
             hasError = true;
         }
 
-        // Validate price
         double price = 0;
         if (priceStr.isEmpty()) {
             tilPrice.setError("Price is required");
@@ -166,7 +159,6 @@ public class SellBookBottomSheet extends BottomSheetDialogFragment {
             }
         }
 
-        // Validate copies
         int copies = 0;
         if (copiesStr.isEmpty()) {
             tilCopies.setError("Number of copies is required");
@@ -184,44 +176,62 @@ public class SellBookBottomSheet extends BottomSheetDialogFragment {
             }
         }
 
-        // Step 4 — stop if any validation failed
         if (hasError) return;
 
-        // Step 5 — check for duplicate (same title + author + seller)
-        final double finalPrice = price;
-        final int finalCopies   = copies;
+        // Build book from validated input
+        final double finalPrice  = price;
+        final int    finalCopies = copies;
 
-        Book duplicate = findDuplicate(title, author, seller);
+        Book newBook = new Book(
+                title, author, seller,
+                finalPrice, finalCopies,
+                R.drawable.cover_psychology,
+                edition, condition, notes
+        );
+
+        // Check for duplicate via repository
+        Book duplicate = ListingRepository.getInstance().findDuplicate(newBook);
 
         if (duplicate != null) {
-            // ── Smart duplicate dialog ────────────────────────────────────────
-            // Instead of blocking, offer to update copies or price
             showDuplicateDialog(duplicate, finalPrice, finalCopies);
             return;
         }
 
-        // Step 6 — no duplicate, post the new listing
-        postNewListing(title, author, seller, edition,
-                condition, finalPrice, finalCopies, notes);
+        // No duplicate — add to repository
+        try {
+            ListingRepository.getInstance().addListing(newBook);
+            Toast.makeText(getContext(),
+                    "Listing posted! R" + String.format("%.2f", finalPrice)
+                            + " | " + finalCopies
+                            + (finalCopies == 1 ? " copy" : " copies"),
+                    Toast.LENGTH_SHORT).show();
+
+            if (listingAddedListener != null) listingAddedListener.onListingAdded();
+            dismiss();
+
+        } catch (DuplicateListingException e) {
+            // Safety net — should be caught by findDuplicate above
+            tilTitle.setError("Duplicate: " + e.getMessage());
+        }
     }
 
     /**
-     * Shows a dialog when a duplicate is detected.
-     * Options: Update Copies | Update Price | Cancel
+     * Shows options when a duplicate listing is detected.
+     * User can update copies, update price, or cancel.
      */
     private void showDuplicateDialog(Book existing,
                                      double newPrice,
                                      int newCopies) {
         String message = "You already have a listing for:\n\n"
                 + "\"" + existing.getTitle() + "\"\n"
-                + "Current price: R" + String.format("%.2f", existing.getPrice()) + "\n"
+                + "by " + existing.getAuthor() + "\n\n"
+                + "Current price:  R" + String.format("%.2f", existing.getPrice()) + "\n"
                 + "Current copies: " + existing.getCopiesAvailable() + "\n\n"
                 + "What would you like to do?";
 
         new AlertDialog.Builder(requireContext())
                 .setTitle("Listing Already Exists")
                 .setMessage(message)
-                // Option 1 — update copies
                 .setPositiveButton("Update Copies", (dialog, which) -> {
                     existing.setCopiesAvailable(newCopies);
                     Toast.makeText(getContext(),
@@ -230,7 +240,6 @@ public class SellBookBottomSheet extends BottomSheetDialogFragment {
                     if (listingAddedListener != null) listingAddedListener.onListingAdded();
                     dismiss();
                 })
-                // Option 2 — update price
                 .setNeutralButton("Update Price", (dialog, which) -> {
                     existing.setPrice(newPrice);
                     Toast.makeText(getContext(),
@@ -239,51 +248,8 @@ public class SellBookBottomSheet extends BottomSheetDialogFragment {
                     if (listingAddedListener != null) listingAddedListener.onListingAdded();
                     dismiss();
                 })
-                // Option 3 — cancel, go back to form
                 .setNegativeButton("Cancel", (dialog, which) -> dialog.dismiss())
                 .show();
-    }
-
-    /**
-     * Posts a brand new listing — called only after duplicate check passes.
-     */
-    private void postNewListing(String title, String author, String seller,
-                                String edition, String condition,
-                                double price, int copies, String notes) {
-        Book newBook = new Book(
-                title, author, seller,
-                price, copies,
-                R.drawable.cover_psychology  // default cover — image picker in future
-        );
-
-        // Branch 5 replaces this with:
-        // ListingRepository.getInstance().addListing(newBook);
-        Toast.makeText(getContext(),
-                "Listing posted! R" + String.format("%.2f", price)
-                        + " | " + copies + " " + (copies == 1 ? "copy" : "copies"),
-                Toast.LENGTH_SHORT).show();
-
-        if (listingAddedListener != null) listingAddedListener.onListingAdded();
-        dismiss();
-    }
-
-    /**
-     * Checks existing listings for a duplicate.
-     * Duplicate = same title + author + seller (case-insensitive).
-     * Returns the matching Book if found, null if no duplicate.
-     *
-     * Branch 5 replaces SampleData with ListingRepository here.
-     */
-    private Book findDuplicate(String title, String author, String seller) {
-        List<Book> existing = SampleData.getSampleBooks();
-        for (Book book : existing) {
-            if (book.getTitle().equalsIgnoreCase(title)
-                    && book.getAuthor().equalsIgnoreCase(author)
-                    && book.getSellerName().equalsIgnoreCase(seller)) {
-                return book;
-            }
-        }
-        return null;
     }
 
     // ── Helpers ───────────────────────────────────────────────────────────────
