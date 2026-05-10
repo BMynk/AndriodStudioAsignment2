@@ -14,6 +14,7 @@
         android:paddingEnd="16dp"
         android:paddingBottom="32dp">
 
+        <!-- Drag handle -->
         <View
             android:id="@+id/drag_handle"
             android:layout_width="40dp"
@@ -23,6 +24,7 @@
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent" />
 
+        <!-- Close button -->
         <ImageButton
             android:id="@+id/sell_close_button"
             android:layout_width="36dp"
@@ -35,6 +37,7 @@
             app:layout_constraintTop_toBottomOf="@id/drag_handle"
             app:tint="@color/text_secondary" />
 
+        <!-- Upload area -->
         <com.google.android.material.card.MaterialCardView
             android:id="@+id/sell_upload_area"
             android:layout_width="match_parent"
@@ -73,6 +76,7 @@
             </LinearLayout>
         </com.google.android.material.card.MaterialCardView>
 
+        <!-- Title -->
         <com.google.android.material.textfield.TextInputLayout
             android:id="@+id/til_title"
             style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
@@ -96,6 +100,7 @@
                 android:textColor="@color/text_primary" />
         </com.google.android.material.textfield.TextInputLayout>
 
+        <!-- Author -->
         <com.google.android.material.textfield.TextInputLayout
             android:id="@+id/til_author"
             style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
@@ -119,6 +124,31 @@
                 android:textColor="@color/text_primary" />
         </com.google.android.material.textfield.TextInputLayout>
 
+        <!-- Seller Name — NEW FIELD -->
+        <com.google.android.material.textfield.TextInputLayout
+            android:id="@+id/til_seller"
+            style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="10dp"
+            android:hint="Your Name (Seller)"
+            app:boxCornerRadiusBottomEnd="12dp"
+            app:boxCornerRadiusBottomStart="12dp"
+            app:boxCornerRadiusTopEnd="12dp"
+            app:boxCornerRadiusTopStart="12dp"
+            app:boxStrokeColor="@color/divider"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/til_author">
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/sell_seller"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:inputType="textCapWords"
+                android:textColor="@color/text_primary" />
+        </com.google.android.material.textfield.TextInputLayout>
+
+        <!-- Edition -->
         <com.google.android.material.textfield.TextInputLayout
             android:id="@+id/til_edition"
             style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
@@ -133,7 +163,7 @@
             app:boxStrokeColor="@color/divider"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/til_author">
+            app:layout_constraintTop_toBottomOf="@id/til_seller">
             <com.google.android.material.textfield.TextInputEditText
                 android:id="@+id/sell_edition"
                 android:layout_width="match_parent"
@@ -142,6 +172,7 @@
                 android:textColor="@color/text_primary" />
         </com.google.android.material.textfield.TextInputLayout>
 
+        <!-- Condition dropdown -->
         <com.google.android.material.textfield.TextInputLayout
             android:id="@+id/til_condition"
             style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox.ExposedDropdownMenu"
@@ -166,6 +197,7 @@
                 android:textColor="@color/text_primary" />
         </com.google.android.material.textfield.TextInputLayout>
 
+        <!-- Price — fixed to R prefix -->
         <com.google.android.material.textfield.TextInputLayout
             android:id="@+id/til_price"
             style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
@@ -178,7 +210,7 @@
             app:boxCornerRadiusTopEnd="12dp"
             app:boxCornerRadiusTopStart="12dp"
             app:boxStrokeColor="@color/divider"
-            app:prefixText="$"
+            app:prefixText="R"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@id/til_condition">
@@ -190,6 +222,31 @@
                 android:textColor="@color/text_primary" />
         </com.google.android.material.textfield.TextInputLayout>
 
+        <!-- Number of Copies — NEW FIELD -->
+        <com.google.android.material.textfield.TextInputLayout
+            android:id="@+id/til_copies"
+            style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="10dp"
+            android:hint="Number of Copies"
+            app:boxCornerRadiusBottomEnd="12dp"
+            app:boxCornerRadiusBottomStart="12dp"
+            app:boxCornerRadiusTopEnd="12dp"
+            app:boxCornerRadiusTopStart="12dp"
+            app:boxStrokeColor="@color/divider"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/til_price">
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/sell_copies"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:inputType="number"
+                android:textColor="@color/text_primary" />
+        </com.google.android.material.textfield.TextInputLayout>
+
+        <!-- Seller Notes -->
         <com.google.android.material.textfield.TextInputLayout
             android:id="@+id/til_notes"
             style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
@@ -204,7 +261,7 @@
             app:boxStrokeColor="@color/divider"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/til_price">
+            app:layout_constraintTop_toBottomOf="@id/til_copies">
             <com.google.android.material.textfield.TextInputEditText
                 android:id="@+id/sell_notes"
                 android:layout_width="match_parent"
@@ -215,6 +272,7 @@
                 android:textColor="@color/text_primary" />
         </com.google.android.material.textfield.TextInputLayout>
 
+        <!-- Post Listing button -->
         <Button
             android:id="@+id/sell_post_button"
             style="@style/Widget.MaterialComponents.Button"
